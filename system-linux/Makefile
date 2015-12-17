@@ -2,7 +2,7 @@ SHELL        = /bin/bash
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 NOW          := $(shell date "+%Y-%m-%d.%Hh%Mm%Ss")
 ALPHAUSB     := wlan1
-APLPHAPCI    := wlan0
+MBWIFI    := wlan0
 
 # --------------------------------------------------------------------------------------
 # System tools
@@ -165,18 +165,50 @@ bind-check:
 wifi-adapter-show:
 	airmon-ng
 
-wifi-desactivate:
+wifi-mac:
+	ifconfig
+
+wifi-restart:
+	/etc/init.d/network stop
+	/etc/init.d/network start
+
+# --------------------------------------------------------------------------------------
+# Wifi integrated to the mother booard
+# --------------------------------------------------------------------------------------
+
+wifi-mb-desactivate:
 	iw $(APLPHAPCI) del
 
-wifi-change-mac:
+wifi-mb-change-mac:
+	ifconfig $(MBWIFI) down
+	macchanger -a $(MBWIFI)
+	ifconfig $(MBWIFI) up
+	ifconfig $(MBWIFI)
+
+wifi-mb-get-ap:
+	airodump-ng --essid="$(ap)" $(MBWIFI)
+
+wifi-mb-disconnect-all:
+	# ifconfig $(ALPHAUSB) down
+	# sleep 2
+	# iwconfig $(ALPHAUSB) channel $(ch)
+	# ifconfig $(ALPHAUSB) up
+	aireplay-ng -0 1 -a $(mac)  --ignore-negative-one  $(MBWIFI)
+
+# --------------------------------------------------------------------------------------
+# Wifi USB ALPHA
+# --------------------------------------------------------------------------------------
+
+wifi-usb-change-mac:
 	ifconfig $(ALPHAUSB) down
 	macchanger -a $(ALPHAUSB)
 	ifconfig $(ALPHAUSB) up
+	ifconfig $(ALPHAUSB)
 
-wifi-get-ap:
+wifi-usb-get-ap:
 	airodump-ng --essid="$(ap)" $(ALPHAUSB)
 
-wifi-disconnect-all:
+wifi-usb-disconnect-all:
 	# ifconfig $(ALPHAUSB) down
 	# sleep 2
 	# iwconfig $(ALPHAUSB) channel $(ch)

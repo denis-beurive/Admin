@@ -215,4 +215,40 @@ wifi-usb-disconnect-all:
 	# ifconfig $(ALPHAUSB) up
 	aireplay-ng -0 1 -a $(mac)  --ignore-negative-one  $(ALPHAUSB)
 
+# --------------------------------------------------------------------------------------
+# Network manager
+# Make sure to disable "hostapd" and "dnsmask" at boot time:
+#      -> update-rc.d hostapd disable
+#      -> update-rc.d dnsmasq disable
+# --------------------------------------------------------------------------------------
+
+network-manager-stop:
+	stop network-manager
+
+network-manager-start:
+	start network-manager
+
+ap-up:
+	$(MAKE) network-manager-stop
+	# WARNING: "hostapd" and "dnsmask" should not be running:
+	#
+	# /etc/init.d/hostapd stop
+	# /etc/init.d/dnsmasq stop
+	cp /etc/network/wifi/interfaces.wlan0 /etc/network/interfaces
+	ifdown wlan0
+	ifup wlan0
+	cp /etc/dnsmasq.conf.wlan0 /etc/dnsmasq.conf
+	/etc/init.d/hostapd start
+	/etc/init.d/dnsmasq start
+
+ap-down:
+	/etc/init.d/hostapd stop
+	/etc/init.d/dnsmasq stop
+	cp /etc/network/interfaces.org /etc/network/interfaces
+	ifdown wlan0
+	ifup wlan0
+	$(MAKE) network-manager-start
+
+
+
 
